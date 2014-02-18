@@ -6,12 +6,20 @@ import logging
 class ConfigBase(object):
 
 	def __init__(self, filename, comment_chars=['#', ';']):
+		"""
+		:string filename: The filename of the file to read from.
+		:list comment_chars: A list of characters to recognize comments in the file
+		"""
 		self.filename = filename
 		self._content = None
 		self.comment_chars = comment_chars
 
 	@property
 	def content(self):
+		"""
+		Reads the file and returns a list of strings.
+		:return: A list of strings
+		"""
 		if not self._content:
 			with open(self.filename, 'r') as f:
 				self._content = [x.rstrip('\n') for x in f.readlines()]
@@ -20,6 +28,10 @@ class ConfigBase(object):
 
 	@property
 	def cleaned(self):
+		"""
+		Takes the content of the file from self.content and yields only non-empty, non-comment
+		lines.
+		"""
 		for line in self.content:
 			if line.strip() and not self.is_comment(line):
 				yield line
@@ -52,11 +64,13 @@ class WriteConfig(ConfigBase):
 		pass
 
 	def save(self, outfile):
-		"""Saves the changed values into the underlying file object"""
+		"""Saves the changed values into the underlying file object. Sub-classes must implement this method
+		to actually save the values to the file"""
 		pass
 
 
 class ConfigValueBase(object):
+	"""Base class for all ConfigValue classes"""
 
 	@staticmethod
 	def parse(line):

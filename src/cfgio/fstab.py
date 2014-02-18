@@ -4,6 +4,9 @@ from cfgio.base import ReadConfig, WriteConfig, ConfigValueBase
 import re
 
 class FstabEntry(ConfigValueBase):
+	"""
+	Represents a single entry in the /etc/fstab format.
+	"""
 
 	line_re = re.compile(r"^\s*(?P<dev>[^\s]+)\s+(?P<mountpoint>[^\s]+)\s+(?P<fs>[\w\d]+)\s+(?P<opts>[^\s]+)\s+(?P<dump>\d+)\s+(?P<pass>\d+)\s*", re.IGNORECASE)
 
@@ -27,7 +30,11 @@ class FstabEntry(ConfigValueBase):
 		return "%s on %s (%s), opts: %s (%s/%s)" % (self.device, self.mountpoint, self.fs, self.opts, self.dump, self._pass)
 
 
-class FstabRWConfig(ReadConfig, WriteConfig):
+class FstabConfig(ReadConfig, WriteConfig):
+	"""
+	Read/Write implementation of the /etc/fstab (or mtab) file format. Uses the FstabEntry class to represent
+	entries.
+	"""
 
 	value_type = FstabEntry
 

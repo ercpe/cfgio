@@ -1,30 +1,25 @@
 # -*- coding: utf-8 -*-
 
-from cfgio.base import ReadConfig, WriteConfig
+from cfgio.base import ReadConfig, WriteConfig, ConfigValueBase
+
+class KeyOnlyValue(ConfigValueBase):
+
+	def __init__(self, key):
+		self.key = key
+
+	@staticmethod
+	def parse(line):
+		return KeyOnlyValue(line.strip())
+
 
 class SimpleRWConfig(ReadConfig, WriteConfig):
 
-	def get(self, name, default=None):
-		for x in self.cleaned():
-			if name == x:
-				return x
-
-		return default
-
+	value_type = KeyOnlyValue
 
 	def set(self, value):
-		values = None
-		if isinstance(value, (list, tuple)):
-			values = value
-		else:
-			values = [value]
+		self._pending.append(value)
 
-		for x in value:
-			if not x in self.cleaned():
-				self._pending.append(x)
-
-
-	def save(self):
-		with open(self.filename, 'a') as f:
-			for x in self._pending:
-				f.write(x)
+	def save(self, outfile):
+		with open(outfile or self.filename, 'w') as f:
+			for line in self.content:
+				f.write(line + '\n')
