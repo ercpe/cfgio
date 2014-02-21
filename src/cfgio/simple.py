@@ -5,14 +5,18 @@ from cfgio.base import ReadConfig, WriteConfig, ConfigValueBase
 class KeyOnlyValue(ConfigValueBase):
 
 	def __init__(self, key):
-		self.key = key
+		self._key = key
 
 	@staticmethod
 	def parse(line):
 		return KeyOnlyValue(line.strip())
 
+	@property
+	def key(self):
+		return self._key
 
-class SimpleRWConfig(ReadConfig, WriteConfig):
+
+class SimpleConfig(ReadConfig, WriteConfig):
 
 	value_type = KeyOnlyValue
 
@@ -23,3 +27,7 @@ class SimpleRWConfig(ReadConfig, WriteConfig):
 		with open(outfile or self.filename, 'w') as f:
 			for line in self.content:
 				f.write(line + '\n')
+
+			for p in self._pending:
+				if not p in list(self.read_values()):
+					f.write("%s\n" % p.key)
