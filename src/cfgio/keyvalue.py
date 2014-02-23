@@ -39,7 +39,6 @@ class KeyValueConfig(WriteConfig):
 		if self.values_quoted:
 			if '"' in value.value:
 				return "%s='%s'" % (value.key, value.value)
-				pass
 			else:
 				return '%s="%s"' % (value.key, value.value)
 
