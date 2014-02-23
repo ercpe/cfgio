@@ -48,13 +48,13 @@ class ReadConfig(ConfigBase):
 
 	def get(self, name, default=None):
 		for v in self.read_values():
-			print(v.key, v)
 			if v.key == name:
 				return v
 
 		return default
 
 	def parse(self, s):
+		"""Subclasses must implement this method to parse a string into an instance of the configuration value class"""
 		pass
 
 
@@ -101,8 +101,9 @@ class WriteConfig(ReadConfig):
 			for p in self._pending:
 				o.write(self.format(p) + '\n')
 
-
 	def format(self, value):
+		"""This method should return a string representing the configuration value in the configuration file format.
+		Subclasses must implement this method."""
 		pass
 
 
@@ -111,10 +112,6 @@ class ConfigValueBase(object):
 
 	def __init__(self, key):
 		self._key = key
-
-	@staticmethod
-	def parse(line):
-		pass
 
 	@property
 	def key(self):

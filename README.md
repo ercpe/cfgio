@@ -11,8 +11,8 @@ Because i often need to read and write configuration files on systems. Typically
 
 **Reading entries from /etc/fstab**
 
-    from cfgio import fstab
-    fstab = fstab.FstabRWConfig('/etc/fstab')
-    print(fstab.get('/dev/sda2'))
-    
-    /dev/sda2 on /boot (ext4), opts: noatime,discard (1/2)
+	from cfgio import fstab
+	fstab = fstab.FstabConfig('/etc/fstab')
+	print(fstab.get('/dev/sda2'))
+
+	/dev/sda2 on /boot (ext4), opts: noatime,discard (1/2)
