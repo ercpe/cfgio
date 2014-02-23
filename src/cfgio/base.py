@@ -44,7 +44,9 @@ class ReadConfig(ConfigBase):
 
 	def read_values(self):
 		for x in self.cleaned:
-			yield self.parse(x)
+			v = self.parse(x)
+			if v:
+				yield v
 
 	def get(self, name, default=None):
 		for v in self.read_values():

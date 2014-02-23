@@ -26,7 +26,7 @@ class KeyValueConfig(WriteConfig):
 	def parse(self, line):
 		m = re.match("^(?P<key>.*)\s*=\s*(?P<value>.*)", line, re.IGNORECASE)
 		if not m:
-			raise Exception("Could not parse line: %s" % line)
+			return None
 
 		x = KeyValueConfigValue(*tuple(map(lambda x: x.strip(), m.groups())))
 
