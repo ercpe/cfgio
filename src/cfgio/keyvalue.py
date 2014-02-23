@@ -1,41 +1,39 @@
 # -*- coding: utf-8 -*-
 import logging
-from cfgio.base import ReadConfig, ConfigValueBase
+from cfgio.base import ReadConfig, ConfigValueBase, WriteConfig
 import re
 
 
 class KeyValueConfigValue(ConfigValueBase):
 
 	def __init__(self, *args):
-		#print(args)
-		self._key, self.value = args
-
-	@property
-	def key(self):
-		return self._key
+		super(KeyValueConfigValue, self).__init__(args[0])
+		self.value = args[1]
 
 	def __repr__(self):
 		return "%s=%s" % (self.key, self.value)
 
-	@staticmethod
-	def parse(line):
-		m = re.match("^(?P<key>.*)\s*=\s*(?P<value>.*)", line, re.IGNORECASE)
-		if m:
-			return KeyValueConfigValue(*tuple(map(lambda x: x.strip(), m.groups())))
-		else:
-			raise Exception("Could not parse line: %s" % line)
 
+class KeyValueConfig(WriteConfig):
+	"""Key-Value configuration file format. Key-value pairs are store line by line. Values may be quoted"""
 
-class KeyValueConfig(ReadConfig):
-	value_type = KeyValueConfigValue
+	quote_chars = ['"', "'"]
 
 	def __init__(self, filename, values_quoted=False):
 		super(KeyValueConfig, self).__init__(filename)
 		self.values_quoted = values_quoted
 
-	def create_value(self, s):
-		x = super(KeyValueConfig, self).create_value(s)
-		quote_chars = ['"', "'"]
-		if self.values_quoted and x.value and (x.value[0] in quote_chars and x.value[-1] in quote_chars):
+	def parse(self, line):
+		m = re.match("^(?P<key>.*)\s*=\s*(?P<value>.*)", line, re.IGNORECASE)
+		if not m:
+			raise Exception("Could not parse line: %s" % line)
+
+		x = KeyValueConfigValue(*tuple(map(lambda x: x.strip(), m.groups())))
+
+		if self.values_quoted and x.value and (x.value[0] in self.quote_chars and x.value[-1] in self.quote_chars):
 			x.value = x.value[1:-1]
+
 		return x
+
+	def format(self, value):
+		pass

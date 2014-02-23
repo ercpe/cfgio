@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import tempfile
 
 from cfgio.fstab import FstabConfig, FstabEntry
 import os
@@ -30,13 +31,22 @@ class TestFstabConfig(object):
 
 
 	def test_value_add(self):
-		dummy_values = ('/dev/foo', '/mnt/bar', 'none', 'none', '0', '0')
+		t = tempfile.mktemp()
 
-		cfg = FstabConfig(os.path.join(os.path.dirname(__file__), 'fstab'))
-		cfg.set(dummy_values[0], FstabEntry(dummy_values))
-		cfg.save(os.path.join(os.path.dirname(__file__), 'fstab.out'))
+		try:
+			dummy_values = ('/dev/foo', '/mnt/bar', 'none', 'none', '0', '0')
 
-		cfg2 = FstabConfig(os.path.join(os.path.dirname(__file__), 'fstab.out'))
-		v = cfg2.get('/dev/foo')
-		assert dummy_values is not None
-		assert dummy_values == (v.device, v.mountpoint, v.fs, v.opts, v.dump, v._pass)
+			cfg = FstabConfig(os.path.join(os.path.dirname(__file__), 'fstab'))
+			cfg.set(FstabEntry(*dummy_values))
+			cfg.save(t)
+
+			cfg2 = FstabConfig(t)
+			v = cfg2.get('/dev/foo')
+			assert dummy_values is not None
+			assert dummy_values == (v.device, v.mountpoint, v.fs, v.opts, v.dump, v._pass)
+
+			print(os.path.exists(t))
+
+		finally:
+			if os.path.exists(t):
+				os.remove(t)

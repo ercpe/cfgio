@@ -44,36 +44,73 @@ class ReadConfig(ConfigBase):
 
 	def read_values(self):
 		for x in self.cleaned:
-			yield self.create_value(x)
-
-	def create_value(self, s):
-		return self.value_type.parse(s)
+			yield self.parse(x)
 
 	def get(self, name, default=None):
 		for v in self.read_values():
+			print(v.key, v)
 			if v.key == name:
 				return v
 
 		return default
 
+	def parse(self, s):
+		pass
 
-class WriteConfig(ConfigBase):
+
+class WriteConfig(ReadConfig):
 
 	def __init__(self, *args, **kwargs):
 		super(WriteConfig, self).__init__(*args, **kwargs)
 		self._pending = []
 
-	def set(self, name, value):
-		pass
+	def set(self, value):
+		self._pending.append(value)
 
 	def save(self, outfile):
-		"""Saves the changed values into the underlying file object. Sub-classes must implement this method
-		to actually save the values to the file"""
+		"""Saves the changed values into the underlying file object. Sub-classes can override this method
+		to modify the way the values are written to the underlying file object"""
+
+		with open(outfile or self.filename, 'w') as o:
+			for line in self.content:
+				if not line:
+					o.write(line + '\n')
+					continue
+
+				if self.is_comment(line):
+					o.write(line + '\n') # FIXME: Replace commented variable
+					continue
+
+				v = self.parse(line)
+
+				if v:
+					written = False
+					for pending in self._pending:
+						if pending.key == v.key:
+							o.write(self.format(pending) + '\n')
+							self._pending.remove(pending)
+							written = True
+							break
+
+					if not written:
+						o.write(line + '\n')
+
+				else:
+					o.write(line + '\n')
+
+			for p in self._pending:
+				o.write(self.format(p) + '\n')
+
+
+	def format(self, value):
 		pass
 
 
 class ConfigValueBase(object):
 	"""Base class for all ConfigValue classes"""
+
+	def __init__(self, key):
+		self._key = key
 
 	@staticmethod
 	def parse(line):
@@ -81,7 +118,7 @@ class ConfigValueBase(object):
 
 	@property
 	def key(self):
-		pass
+		return self._key
 
 	def __eq__(self, other):
 		return isinstance(other, self.__class__) and self.key == other.key

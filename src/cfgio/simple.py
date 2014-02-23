@@ -2,32 +2,16 @@
 
 from cfgio.base import ReadConfig, WriteConfig, ConfigValueBase
 
+
 class KeyOnlyValue(ConfigValueBase):
-
-	def __init__(self, key):
-		self._key = key
-
-	@staticmethod
-	def parse(line):
-		return KeyOnlyValue(line.strip())
-
-	@property
-	def key(self):
-		return self._key
+	pass
 
 
-class SimpleConfig(ReadConfig, WriteConfig):
+class SimpleConfig(WriteConfig):
+	"""Simple configuration file format. This file format contains one key or "statement" per line."""
 
-	value_type = KeyOnlyValue
+	def parse(self, s):
+		return KeyOnlyValue(s.strip())
 
-	def set(self, value):
-		self._pending.append(value)
-
-	def save(self, outfile):
-		with open(outfile or self.filename, 'w') as f:
-			for line in self.content:
-				f.write(line + '\n')
-
-			for p in self._pending:
-				if not p in list(self.read_values()):
-					f.write("%s\n" % p.key)
+	def format(self, value):
+		return value.key

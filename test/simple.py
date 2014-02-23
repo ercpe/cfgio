@@ -39,4 +39,5 @@ class TestSimpleConfig(object):
 			assert(len(list(cfg.read_values())) == 5)
 
 		finally:
-			os.remove(t)
+			if os.path.exists(t):
+				os.remove(t)
