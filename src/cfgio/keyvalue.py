@@ -36,4 +36,12 @@ class KeyValueConfig(WriteConfig):
 		return x
 
 	def format(self, value):
-		pass
+		if self.values_quoted:
+			if '"' in value.value:
+				return "%s='%s'" % (value.key, value.value)
+				pass
+			else:
+				return '%s="%s"' % (value.key, value.value)
+
+		else:
+			return "%s=%s" % (value.key, value.value)
