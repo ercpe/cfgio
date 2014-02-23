@@ -44,7 +44,10 @@ class ReadConfig(ConfigBase):
 
 	def read_values(self):
 		for x in self.cleaned:
-			yield self.value_type.parse(x)
+			yield self.create_value(x)
+
+	def create_value(self, s):
+		return self.value_type.parse(s)
 
 	def get(self, name, default=None):
 		for v in self.read_values():
@@ -79,3 +82,6 @@ class ConfigValueBase(object):
 	@property
 	def key(self):
 		pass
+
+	def __eq__(self, other):
+		return isinstance(other, self.__class__) and self.key == other.key
