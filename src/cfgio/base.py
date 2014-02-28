@@ -55,6 +55,11 @@ class ReadConfig(ConfigBase):
 
 		return default
 
+	def find(self, f):
+		for i in self.read_values():
+			if f(i):
+				return i
+
 	def parse(self, s):
 		"""Subclasses must implement this method to parse a string into an instance of the configuration value class"""
 		pass
