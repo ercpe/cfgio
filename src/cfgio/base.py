@@ -83,7 +83,7 @@ class WriteConfig(ReadConfig):
 	def set(self, value):
 		self._pending.append(value)
 
-	def save(self, outfile):
+	def save(self, outfile=None):
 		"""Saves the changed values into the underlying file object. Sub-classes can override this method
 		to modify the way the values are written to the underlying file object"""
 
