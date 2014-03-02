@@ -15,11 +15,11 @@ class FstabEntry(ConfigValueBase):
 
 		super(FstabEntry, self).__init__(args[0])
 
-		self.device, self.mountpoint, self.fs, self.opts, self.dump, self._pass = args
-		self._device, self._mountpoint, self._fs, self._opts, self._dump, self.__pass = args
+		self.device, self.mountpoint, self.filesystem, self.opts, self.dump, self._pass = args
+		self._device, self._mountpoint, self._filesystem, self._opts, self._dump, self.__pass = args
 
 	def __repr__(self):
-		return "%s on %s (%s), opts: %s (%s/%s)" % (self.device, self.mountpoint, self.fs, self.opts, self.dump, self._pass)
+		return "%s on %s (%s), opts: %s (%s/%s)" % (self.device, self.mountpoint, self.filesystem, self.opts, self.dump, self._pass)
 
 
 class FstabConfig(WriteConfig):
@@ -35,4 +35,4 @@ class FstabConfig(WriteConfig):
 		return FstabEntry(*m.groups())
 
 	def format(self, value):
-		return '{}\t{}\t{}\t{}\t{}\t{}'.format(value.device, value.mountpoint, value.fs, value.opts, value.dump, value._pass)
+		return '{}\t{}\t{}\t{}\t{}\t{}'.format(value.device, value.mountpoint, value.filesystem, value.opts, value.dump, value._pass)

@@ -24,7 +24,7 @@ class TestFstabConfig(object):
 			assert value is not None
 			assert value.device == dev
 			assert value.mountpoint == mp
-			assert value.fs == fs
+			assert value.filesystem == fs
 			assert value.opts == opts
 			assert value.dump == dump
 			assert value._pass == p
@@ -43,7 +43,7 @@ class TestFstabConfig(object):
 			cfg2 = FstabConfig(t)
 			v = cfg2.get('/dev/foo')
 			assert dummy_values is not None
-			assert dummy_values == (v.device, v.mountpoint, v.fs, v.opts, v.dump, v._pass)
+			assert dummy_values == (v.device, v.mountpoint, v.filesystem, v.opts, v.dump, v._pass)
 
 			print(os.path.exists(t))
 
