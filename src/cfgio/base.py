@@ -56,9 +56,18 @@ class ReadConfig(ConfigBase):
 		return default
 
 	def find(self, f):
+		"""Finds a single configuration value."""
+
 		for i in self.read_values():
 			if f(i):
 				return i
+
+	def find_all(self, f):
+		"""Finds all configuration where f(x) is True"""
+		for i in self.read_values():
+			if f(i):
+				yield i
+
 
 	def parse(self, s):
 		"""Subclasses must implement this method to parse a string into an instance of the configuration value class"""
