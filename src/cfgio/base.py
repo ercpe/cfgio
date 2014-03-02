@@ -79,9 +79,13 @@ class WriteConfig(ReadConfig):
 	def __init__(self, *args, **kwargs):
 		super(WriteConfig, self).__init__(*args, **kwargs)
 		self._pending = []
+		self._remove = []
 
 	def set(self, value):
 		self._pending.append(value)
+
+	def remove(self, key):
+		self._remove.append(key)
 
 	def save(self, outfile=None):
 		"""Saves the changed values into the underlying file object. Sub-classes can override this method
@@ -97,21 +101,29 @@ class WriteConfig(ReadConfig):
 					o.write(line + '\n') # FIXME: Replace commented variable
 					continue
 
-				v = self.parse(line)
+				value = self.parse(line)
 
-				if v:
+				if value:
 					written = False
 					for pending in self._pending:
-						if pending.key == v.key:
+						if pending.key == value.key:
 							o.write(self.format(pending) + '\n')
 							self._pending.remove(pending)
 							written = True
 							break
 
 					if not written:
+						for remove_key in self._remove:
+							if remove_key == value.key:
+								# just pretend that we have written the value
+								written = True
+								break
+
+					if not written:
 						o.write(line + '\n')
 
 				else:
+					# pass-through garbage
 					o.write(line + '\n')
 
 			for p in self._pending:

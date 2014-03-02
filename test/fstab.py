@@ -42,10 +42,41 @@ class TestFstabConfig(object):
 
 			cfg2 = FstabConfig(t)
 			v = cfg2.get('/dev/foo')
-			assert dummy_values is not None
+			assert v is not None
 			assert dummy_values == (v.device, v.mountpoint, v.filesystem, v.opts, v.dump, v._pass)
 
-			print(os.path.exists(t))
+		finally:
+			if os.path.exists(t):
+				os.remove(t)
+
+	def test_delete(self):
+		t = tempfile.mktemp()
+
+		try:
+			cfg = FstabConfig(os.path.join(os.path.dirname(__file__), 'fstab'))
+			cfg.remove('/dev/ROOT')
+			cfg.save(t)
+
+			cfg2 = FstabConfig(t)
+			assert cfg2.get('/dev/ROOT') is None
+
+		finally:
+			if os.path.exists(t):
+				os.remove(t)
+
+	def test_delete_set_precedence(self):
+		"""Tests that a call to .set() takes precendence over a call to .remove() with the same key"""
+
+		t = tempfile.mktemp()
+
+		try:
+			cfg = FstabConfig(os.path.join(os.path.dirname(__file__), 'fstab'))
+			cfg.remove('/dev/ROOT')
+			cfg.set(FstabEntry('/dev/ROOT', '/', 'ext4', 'defaults', 0, 2))
+			cfg.save(t)
+
+			cfg2 = FstabConfig(t)
+			assert cfg2.get('/dev/ROOT') is not None
 
 		finally:
 			if os.path.exists(t):
