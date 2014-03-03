@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-import logging
 from cfgio.base import ReadConfig, ConfigValueBase, WriteConfig
-import re
 
 
 class KeyValueConfigValue(ConfigValueBase):
@@ -19,28 +17,29 @@ class KeyValueConfig(WriteConfig):
 
 	quote_chars = ['"', "'"]
 
-	def __init__(self, filename, values_quoted=False):
+	def __init__(self, filename, separator="=", values_quoted=False):
 		super(KeyValueConfig, self).__init__(filename)
 		self.values_quoted = values_quoted
+		self.separator = separator
 
 	def parse(self, line):
-		m = re.match("^(?P<key>.*)\s*=\s*(?P<value>.*)", line, re.IGNORECASE)
-		if not m:
+		if not self.separator in line or len(line[:line.index(self.separator)].strip()) == 0:
 			return None
 
-		x = KeyValueConfigValue(*tuple(map(lambda x: x.strip(), m.groups())))
+		key = line[:line.index(self.separator)].strip()
+		value = line[line.index(self.separator)+1:].strip()
 
-		if self.values_quoted and x.value and (x.value[0] in self.quote_chars and x.value[-1] in self.quote_chars):
-			x.value = x.value[1:-1]
+		if self.values_quoted and value and (value[0] in self.quote_chars and value[-1] in self.quote_chars):
+			value = value[1:-1]
 
-		return x
+		return KeyValueConfigValue(key, value)
 
 	def format(self, value):
 		if self.values_quoted:
 			if '"' in value.value:
-				return "%s='%s'" % (value.key, value.value)
+				return "%s%s'%s'" % (value.key, self.separator, value.value)
 			else:
-				return '%s="%s"' % (value.key, value.value)
+				return '%s%s"%s"' % (value.key, self.separator, value.value)
 
 		else:
-			return "%s=%s" % (value.key, value.value)
+			return "%s%s%s" % (value.key, self.separator, value.value)

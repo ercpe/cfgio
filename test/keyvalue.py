@@ -8,7 +8,10 @@ from cfgio.keyvalue import KeyValueConfig, KeyValueConfigValue
 class TestKeyValueConfig(object):
 
 	def _create_config(self, filename=None, **kwargs):
-		return KeyValueConfig(filename or os.path.join(os.path.dirname(__file__), 'keyvalue.cfg'), **kwargs)
+		f = os.path.join(os.path.dirname(__file__), 'keyvalue.cfg')
+		if filename:
+			f = filename if os.path.isabs(filename) else os.path.join(os.path.dirname(__file__), filename)
+		return KeyValueConfig(f, **kwargs)
 
 	def test_read(self):
 		cfg = self._create_config()
@@ -29,13 +32,32 @@ class TestKeyValueConfig(object):
 			assert x is not None
 			assert x.value == v
 
-	def test_quoted_values(self):
+	def test_read_values_with_space_separator(self):
+		cfg = self._create_config('keyvalue_space.cfg', separator=" ")
+
+		for k, v in [
+						('test', 'blah'),
+						('foo', 'bar'),
+						('inline_comments', 'yes # or no?'),
+						('with_quotes', '"yeah"')
+					]:
+			x = cfg.get(k)
+			assert x is not None
+			assert x.value == v
+
+	def test_read_quoted_values(self):
 		cfg = self._create_config(values_quoted=True)
 
 		x = cfg.get('with_quotes')
 		assert x is not None
 		assert x.value == "yeah"
 
+	def test_read_quoted_values_with_space_separator(self):
+		cfg = self._create_config('keyvalue_space.cfg', separator=" ", values_quoted=True)
+
+		x = cfg.get('with_quotes')
+		assert x is not None
+		assert x.value == "yeah"
 
 	def test_write(self):
 		t = tempfile.mktemp()
@@ -68,6 +90,40 @@ class TestKeyValueConfig(object):
 			cfg = self._create_config(t)
 			assert(len(list(cfg.read_values())) == 7)
 
+		finally:
+			if os.path.exists(t):
+				os.remove(t)
+
+	def test_write_space_separator(self):
+		t = tempfile.mktemp()
+
+		try:
+			cfg = self._create_config('keyvalue_space.cfg', separator=" ")
+			cfg.set(KeyValueConfigValue("aaa", "bbb"))
+			cfg.save(t)
+
+			# our new key should by written to the tempfile
+			cfg = self._create_config(t, separator=" ")
+			assert(len(list(cfg.read_values())) == 5)
+
+			# but not again
+			cfg.set(KeyValueConfigValue("aaa", "bbb"))
+			cfg.save(t)
+			cfg = self._create_config(t, separator=" ")
+			assert(len(list(cfg.read_values())) == 5)
+
+
+			cfg = self._create_config(t, values_quoted=True, separator=" ")
+			assert len(list(cfg.read_values())) == 5
+			v = cfg.get('aaa')
+			assert v is not None
+			assert v.value == "bbb"
+
+			# but not again
+			cfg.set(KeyValueConfigValue("aaa", "bbb"))
+			cfg.save(t)
+			cfg = self._create_config(t, separator=" ")
+			assert(len(list(cfg.read_values())) == 5)
 		finally:
 			if os.path.exists(t):
 				os.remove(t)
