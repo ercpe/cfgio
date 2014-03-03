@@ -91,6 +91,9 @@ class WriteConfig(ReadConfig):
 		"""Saves the changed values into the underlying file object. Sub-classes can override this method
 		to modify the way the values are written to the underlying file object"""
 
+		# make sure that we always read the entire config file before overwriting it.
+		list(self.read_values())
+
 		with open(outfile or self.filename, 'w') as o:
 			for line in self.content:
 				if not line:
