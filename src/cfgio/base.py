@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import os
 
 
 class ConfigBase(object):
@@ -21,8 +22,11 @@ class ConfigBase(object):
 		:return: A list of strings
 		"""
 		if not self._content:
-			with open(self.filename, 'r') as f:
-				self._content = [x.rstrip('\n') for x in f.readlines()]
+			if os.path.exists(self.filename):
+				with open(self.filename, 'r') as f:
+					self._content = [x.rstrip('\n') for x in f.readlines()]
+			else:
+				self._content = []
 
 		return self._content
 
