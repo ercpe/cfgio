@@ -17,10 +17,16 @@ class KeyValueConfig(WriteConfig):
 
 	quote_chars = ['"', "'"]
 
-	def __init__(self, filename, separator="=", values_quoted=False):
+	def __init__(self, filename, separator="=", comment_chars=['#', ';'], values_quoted=False):
 		super(KeyValueConfig, self).__init__(filename)
 		self.values_quoted = values_quoted
 		self.separator = separator
+
+	def is_quoted(self, s):
+		"""
+		Tests whether the given string is quoted (starting and ending with one of self.comment_chars)
+		"""
+		return s and (s[0] in self.quote_chars and s[0] == s[-1])
 
 	def parse(self, line):
 		if not self.separator in line or len(line[:line.index(self.separator)].strip()) == 0:
@@ -29,7 +35,7 @@ class KeyValueConfig(WriteConfig):
 		key = line[:line.index(self.separator)].strip()
 		value = line[line.index(self.separator)+1:].strip()
 
-		if self.values_quoted and value and (value[0] in self.quote_chars and value[-1] in self.quote_chars):
+		if self.values_quoted and self.is_quoted(value):
 			value = value[1:-1]
 
 		return KeyValueConfigValue(key, value)
