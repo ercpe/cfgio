@@ -9,17 +9,18 @@ class TestTypedKVConfig(TestKeyValueConfig):
 	def test_parsing(self):
 		cfg = TypeAwareKeyValueConfig(os.path.join(os.path.dirname(__file__), 'typedkv.cfg'))
 
-		for key, valuetype in [('astring', str),
-								('anint', int),
-								('afloat', float),
-								('abool', bool),
-								('anotherbool', bool),
-								('list_of_strings', list)
+		for key, valuetype, expected_value in [('astring', str, "This is a string"),
+								('anint', int, 42),
+								('afloat', float, 13.37),
+								('abool', bool, True),
+								('anotherbool', bool, False),
+								('list_of_strings', list, ["foo", 'bar', "baz"]),
+								('another_list', list, ["foo, bar", 1, 2, 3])
 							]:
-
 			value = cfg.get(key)
 			assert value is not None
 			assert isinstance(value.value, valuetype)
+			assert value.value == expected_value
 
 		l = cfg.get('list_of_strings')
 		assert len(l.value) == 3
