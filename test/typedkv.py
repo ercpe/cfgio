@@ -15,7 +15,7 @@ class TestTypedKVConfig(TestKeyValueConfig):
 								('abool', bool, True),
 								('anotherbool', bool, False),
 								('list_of_strings', list, ["foo", 'bar', "baz"]),
-								('another_list', list, ["foo, bar", 1, 2, 3])
+								('another_list', list, ["foo, bar", 1, 2, 3.4])
 							]:
 			value = cfg.get(key)
 			assert value is not None
@@ -27,3 +27,10 @@ class TestTypedKVConfig(TestKeyValueConfig):
 
 		for x in l.value:
 			assert isinstance(x, str)
+
+		l = cfg.get('another_list')
+		assert len(l.value) == 4
+
+		list_types = (str, int, int, float)
+		for i, x in enumerate(l.value):
+			assert isinstance(x, list_types[i])

@@ -37,31 +37,40 @@ class TypeAwareKeyValueConfig(KeyValueConfig):
 		if self.is_quoted(s):
 			# it's a string
 			return str(s[1:-1])
+
+		if s.startswith("[") and s.endswith("]"):
+			# it's a list
+			return self.parse_list(s.strip().lstrip("[").rstrip("]"))
 		else:
-			if s.startswith("[") and s.endswith("]"):
-				# it's a list
-				return self.parse_list(s.strip().lstrip("[").rstrip("]"))
-			else:
-				# try each of this function to create a specific type
-				for f in [int, float, complex]:
-					try:
-						return f(s)
-					except ValueError:
-						pass
+			# try each of this function to create a specific type
+			for f in [int, float, complex]:
+				try:
+					return f(s)
+				except ValueError:
+					pass
 
-				# try to convert it to boolean
-				if s.lower() in ["true", "yes", "on"]:
-					return True
-				elif s.lower() in ["false", "no", "off"]:
-					return False
+			# try to convert it to boolean
+			if s.lower() in ["true", "yes", "on"]:
+				return True
+			elif s.lower() in ["false", "no", "off"]:
+				return False
 
-				return s
+			return s
 
 	def parse_list(self, s):
 		parser = shlex.shlex(s)
 		parser.whitespace += ","
+		parser.wordchars += "."
 
 		l = []
 		for x in parser:
 			l.append(self.parse_value(x))
 		return l
+
+	def format(self, value):
+		if isinstance(value, str):
+			return '"%s"' % str.replace('"', '\"') # FIXME: Find a better way to quote quotes
+		if isinstance(value, (float, int, complex)):
+			return str(value)
+		if isinstance(value, list):
+			return "[ %s ]" % ', '.join([self.format(x) for x in value])
