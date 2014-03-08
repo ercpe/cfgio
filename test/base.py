@@ -106,6 +106,8 @@ class KeyValueConfigTestBase(object):
 
 			# our new key should by written to the tempfile
 			cfg = self._create_config(t)
+			print(list(cfg.read_values()))
+
 			assert(len(list(cfg.read_values())) == len(self.default_cfg_items())+1)
 
 			# but not again

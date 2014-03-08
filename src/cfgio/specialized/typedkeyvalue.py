@@ -69,6 +69,10 @@ class TypeAwareKeyValueConfig(KeyValueConfig):
 		:param value:the string to parse
 		:return: a list
 		"""
+
+		if not value:
+			return []
+
 		parser = shlex.shlex(value)
 		parser.whitespace += ","
 		parser.wordchars += "."
@@ -79,11 +83,15 @@ class TypeAwareKeyValueConfig(KeyValueConfig):
 		return l
 
 	def format(self, value):
-		if isinstance(value, str):
-			return '"%s"' % str.replace('"', '\"') # FIXME: Find a better way to quote quotes
-		if isinstance(value, (float, int, complex)):
-			return str(value)
-		if isinstance(value, list):
-			return "[ %s ]" % ', '.join([self.format(x) for x in value])
+		value_string = None
 
-		return str(value)
+		if isinstance(value.value, str):
+			value_string = '"%s"' % value.value.replace('"', '\"') # FIXME: Find a better way to quote quotes
+		elif isinstance(value.value, (float, int, complex)):
+			value_string = str(value)
+		elif isinstance(value.value, list):
+			value_string = "[ %s ]" % ', '.join([self.format(x) for x in value.value])
+		else:
+			value_string = str(value.value)
+
+		return "%s = %s" % (value.key, value_string)
