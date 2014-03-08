@@ -5,7 +5,7 @@ from ..keyvalue import KeyValueConfig
 
 class TypeAwareKeyValueConfig(KeyValueConfig):
 
-	def __init__(self, filename, comment_chars=['#', ';']):
+	def __init__(self, filename=None, comment_chars=['#', ';']):
 		super(TypeAwareKeyValueConfig, self).__init__(filename, comment_chars=comment_chars, values_quoted=False)
 
 	def parse(self, line):
@@ -14,11 +14,11 @@ class TypeAwareKeyValueConfig(KeyValueConfig):
 		if not kvcv:
 			return None
 
-		kvcv.value = self.parse_value(kvcv.value)
+		kvcv.value = self.parse_value(kvcv.key, kvcv.value)
 
 		return kvcv
 
-	def parse_value(self, s):
+	def parse_value(self, key, value):
 		"""
 		Implements the parsing of the value potion of a KeyValueConfigValue.
 
@@ -30,41 +30,52 @@ class TypeAwareKeyValueConfig(KeyValueConfig):
 
 		Lists are supported using the [] notation (like python). Each item in the list will by parsed again with
 		this function, so the value type of the list items is preserved.
+
+		Subclasses can override this method to implement an even more specialized value conversion.
+
+		:param key: The key
+		:param value: The value
 		"""
-		if s is None:
+		if value is None:
 			return None
 
-		if self.is_quoted(s):
+		if self.is_quoted(value):
 			# it's a string
-			return str(s[1:-1])
+			return str(value[1:-1])
 
-		if s.startswith("[") and s.endswith("]"):
+		if value.startswith("[") and value.endswith("]"):
 			# it's a list
-			return self.parse_list(s.strip().lstrip("[").rstrip("]"))
+			return self.parse_list(key, value.strip().lstrip("[").rstrip("]"))
 		else:
 			# try each of this function to create a specific type
 			for f in [int, float, complex]:
 				try:
-					return f(s)
+					return f(value)
 				except ValueError:
 					pass
 
 			# try to convert it to boolean
-			if s.lower() in ["true", "yes", "on"]:
+			if value.lower() in ["true", "yes", "on"]:
 				return True
-			elif s.lower() in ["false", "no", "off"]:
+			elif value.lower() in ["false", "no", "off"]:
 				return False
 
-			return s
+			return value
 
-	def parse_list(self, s):
-		parser = shlex.shlex(s)
+	def parse_list(self, key, value):
+		"""
+		Parses a string into a list using the shlex module. Each list item is parsed again with self.parse_value
+		to implement a typed list.
+		:param value:the string to parse
+		:return: a list
+		"""
+		parser = shlex.shlex(value)
 		parser.whitespace += ","
 		parser.wordchars += "."
 
 		l = []
 		for x in parser:
-			l.append(self.parse_value(x))
+			l.append(self.parse_value(key, x))
 		return l
 
 	def format(self, value):

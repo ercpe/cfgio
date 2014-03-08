@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import tempfile
+import pytest
 
 from cfgio.fstab import FstabConfig, FstabEntry
 import os
@@ -10,6 +11,11 @@ class TestFstabConfig(object):
 	def test_read(self):
 		cfg = FstabConfig(os.path.join(os.path.dirname(__file__), 'fstab'))
 		assert len(list(cfg.read_values())) == 5
+
+	def test_instantiate(self):
+		with pytest.raises(Exception):
+			for x in range(1, 5):
+				FstabEntry(tuple(['' * x]))
 
 	def test_parse(self):
 		cfg = FstabConfig(os.path.join(os.path.dirname(__file__), 'fstab'))

@@ -2,6 +2,8 @@
 
 import os
 import tempfile
+import pytest
+from cfgio.base import ConfigValueBase
 
 
 class KeyValueConfigTestBase(object):
@@ -34,6 +36,42 @@ class KeyValueConfigTestBase(object):
 
 		return self.cfg_type(f, **kwargs)
 
+	def test_empty_config_read(self):
+		# TODO: Move to common base class for tests (see test_base.py)
+		try:
+			self.cfg_type()
+		except Exception as ex:
+			pytest.fail("Failed to instantiate a config class without filename (caught: %s)" % ex)
+
+		try:
+			for filename in [None, '']:
+				cfg = self.cfg_type(filename)
+				assert len(list(cfg.read_values())) == 0
+		except Exception as ex:
+			pytest.fail("Failed to instantiate config class with filename=%s (caught: %s)" % (filename, ex))
+
+	def test_empty_config_write(self):
+		# TODO: Move to common base class for tests (see test_base.py)
+		try:
+			cfg = self.cfg_type()
+		except Exception as ex:
+			pytest.fail("Failed to instantiate config class without filename (caught: %s)" % ex)
+
+		cfg.set('foo')
+		with pytest.raises(Exception):
+			cfg.save()
+
+		try:
+			for filename in [None, '']:
+				cfg = self.cfg_type(filename)
+				assert len(list(cfg.read_values())) == 0
+
+				cfg.set('foo')
+				with pytest.raises(Exception):
+					cfg.save()
+
+		except Exception as ex:
+			pytest.fail("Failed to instantiate config class with filename=%s (caught: %s)" % (filename, ex))
 
 	def test_read_values(self):
 		cfg = self._create_config()
@@ -44,6 +82,19 @@ class KeyValueConfigTestBase(object):
 			x = cfg.get(k)
 			assert x is not None
 			assert x.value == v
+
+	def test_set(self):
+		t = tempfile.mktemp()
+
+		try:
+			cfg = self._create_config()
+			cfg.set(None)
+			cfg.save(t)
+		except Exception as ex:
+			pytest.fail("Caught %s when set()ing None" % ex)
+		finally:
+			if os.path.exists(t):
+				os.remove(t)
 
 	def test_write(self):
 		t = tempfile.mktemp()
@@ -66,3 +117,41 @@ class KeyValueConfigTestBase(object):
 		finally:
 			if os.path.exists(t):
 				os.remove(t)
+
+	def test_find(self):
+		cfg = self._create_config()
+
+		x = self.default_cfg_items()[0]
+
+		result = cfg.find(lambda v: v.key == x[0])
+		assert result is not None
+		assert isinstance(result, self.cfg_value_type)
+		assert result.value == x[1]
+
+	def test_find_all(self):
+		cfg = self._create_config()
+
+		x = self.default_cfg_items()[0]
+		y = self.default_cfg_items()[1]
+
+		expected_items = {
+			x[0]: x[1],
+			y[0]: y[1],
+		}
+
+		result = list(cfg.find_all(lambda v: v.key in [x[0], y[0]]))
+		assert result is not None
+		assert len(result) == 2
+
+		for item in result:
+			assert isinstance(item, self.cfg_value_type)
+			assert item.key in expected_items
+			assert item.value == expected_items[item.key]
+
+
+	def test_config_value_equals(self):
+		option1 = ConfigValueBase('foo')
+		option2 = ConfigValueBase('foo')
+
+		assert option1 == option2
+		assert option1 != "foo"

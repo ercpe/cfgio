@@ -6,7 +6,7 @@ import os
 
 class ConfigBase(object):
 
-	def __init__(self, filename, comment_chars=['#', ';']):
+	def __init__(self, filename=None, comment_chars=['#', ';']):
 		"""
 		:string filename: The filename of the file to read from.
 		:list comment_chars: A list of characters to recognize comments in the file
@@ -22,7 +22,7 @@ class ConfigBase(object):
 		:return: A list of strings
 		"""
 		if not self._content:
-			if os.path.exists(self.filename):
+			if self.filename and os.path.exists(self.filename):
 				with open(self.filename, 'r') as f:
 					self._content = [x.rstrip('\n') for x in f.readlines()]
 			else:
@@ -86,7 +86,8 @@ class WriteConfig(ReadConfig):
 		self._remove = []
 
 	def set(self, value):
-		self._pending.append(value)
+		if value:
+			self._pending.append(value)
 
 	def remove(self, key):
 		self._remove.append(key)

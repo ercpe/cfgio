@@ -17,7 +17,7 @@ class KeyValueConfig(WriteConfig):
 
 	quote_chars = ['"', "'"]
 
-	def __init__(self, filename, separator="=", comment_chars=['#', ';'], values_quoted=False):
+	def __init__(self, filename=None, separator="=", comment_chars=['#', ';'], values_quoted=False):
 		super(KeyValueConfig, self).__init__(filename)
 		self.values_quoted = values_quoted
 		self.separator = separator

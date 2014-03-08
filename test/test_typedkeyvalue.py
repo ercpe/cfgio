@@ -7,10 +7,6 @@ from test.base import KeyValueConfigTestBase
 
 class TestTypedKVConfig(KeyValueConfigTestBase):
 
-	#def __init__(self):
-	#	pass
-		#super(TestKeyValueConfigBase, self).__init__(TypeAwareKeyValueConfig, KeyValueConfigValue, 'typekv.cfg')
-
 	@property
 	def default_cfg(self):
 		return 'typedkv.cfg'
@@ -33,31 +29,43 @@ class TestTypedKVConfig(KeyValueConfigTestBase):
 				('another_list', ["foo, bar", 1, 2, 3.4])
 				]
 
-	def test_parsing(self):
-		cfg = TypeAwareKeyValueConfig(os.path.join(os.path.dirname(__file__), 'typedkv.cfg'))
+	def test_conversion(self):
+		cfg = self.cfg_type()
 
-		for key, valuetype, expected_value in [('astring', str, "This is a string"),
-								('anint', int, 42),
-								('afloat', float, 13.37),
-								('abool', bool, True),
-								('anotherbool', bool, False),
-								('list_of_strings', list, ["foo", 'bar', "baz"]),
-								('another_list', list, ["foo, bar", 1, 2, 3.4])
+		assert cfg.parse_value('foo', None) is None
+
+		for input, valuetype, expected_value in [
+								("This is a string", str, "This is a string"),
+								('42', int, 42),
+								('13.37', float, 13.37),
+								('True', bool, True),
+								('on', bool, True),
+								('yes', bool, True),
+								('false', bool, False),
+								('off', bool, False),
+								('no', bool, False),
+								("""["foo", 'bar', "baz"]""", list, ["foo", 'bar', "baz"]),
+								("""["foo, bar", 1, 2, 3.4]""", list, ["foo, bar", 1, 2, 3.4])
 							]:
-			value = cfg.get(key)
-			assert value is not None
-			assert isinstance(value.value, valuetype)
-			assert value.value == expected_value
 
-		l = cfg.get('list_of_strings')
-		assert len(l.value) == 3
+			parsed_value = cfg.parse_value("dummy", input)
+			assert parsed_value is not None
+			assert isinstance(parsed_value, valuetype)
+			assert parsed_value == expected_value
 
-		for x in l.value:
-			assert isinstance(x, str)
+			if isinstance(parsed_value, list):
+				assert len(parsed_value) == len(expected_value)
+				for i, expected in enumerate(expected_value):
+					assert isinstance(parsed_value[i], type(expected))
 
-		l = cfg.get('another_list')
-		assert len(l.value) == 4
+	def format(self):
+		cfg = self.cfg_type()
 
-		list_types = (str, int, int, float)
-		for i, x in enumerate(l.value):
-			assert isinstance(x, list_types[i])
+		for raw, expected_s in [
+								(42, "42"),
+								(13.37, "13.37"),
+								(True, "true"),
+								(["foo", "bar", "baz"], """[ "foo", "bar", "baz" ]""")
+							]:
+
+			assert cfg.format(raw) == expected_s
