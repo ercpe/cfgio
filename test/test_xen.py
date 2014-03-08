@@ -3,7 +3,7 @@ import os
 import tempfile
 import pytest
 from cfgio.keyvalue import KeyValueConfigValue
-from cfgio.specialized.xen import XenConfig, XenDomUDiskConfigValue
+from cfgio.specialized.xen import XenConfig, XenDomUDiskConfigValue, XenDomUVifConfigValue
 from test.base import KeyValueConfigTestBase
 
 
@@ -32,7 +32,7 @@ class TestTypedKVConfig(KeyValueConfigTestBase):
 				XenDomUDiskConfigValue('file', '/tmp/bar-hdd1', '/dev/xvda2', 'w'),
 			]),
 			('root', "/dev/xvda1"),
-			('vif', [ 'mac=00:11:22:33:44:55,bridge=br0', ])
+			('vif', [ XenDomUVifConfigValue(mac='00:11:22:33:44:55', bridge="br0") ])
 		]
 
 
@@ -67,6 +67,20 @@ class TestTypedKVConfig(KeyValueConfigTestBase):
 			assert (disks.value[i].backend_access, disks.value[i].backend, disks.value[i].frontend, disks.value[i].mode) == \
 						values
 
+	def test_parse_vif(self):
+		cfg = self._create_config()
+
+		vifs = cfg.get('vif')
+
+		assert vifs is not None
+		assert isinstance(vifs.value, list)
+		assert len(vifs.value) == 1
+
+		vif = vifs.value[0]
+		assert isinstance(vif, XenDomUVifConfigValue)
+		assert vif.mac == '00:11:22:33:44:55'
+		assert vif.bridge == 'br0'
+
 	def test_write_disk(self):
 		t = tempfile.mktemp()
 
@@ -88,6 +102,34 @@ class TestTypedKVConfig(KeyValueConfigTestBase):
 
 			assert (disks.value[0].backend_access, disks.value[0].backend, disks.value[0].frontend, disks.value[0].mode) == \
 						('phy', '/dev/foo/bar-hdd0', '/dev/xvda1', 'r')
+
+
+		finally:
+			if os.path.exists(t):
+				os.remove(t)
+
+	def test_write_vif(self):
+		t = tempfile.mktemp()
+
+		try:
+			cfg = self.cfg_type()
+
+			vif = XenDomUVifConfigValue(mac='00:11:22:33:44:55', bridge='br0')
+			cfg.set(KeyValueConfigValue('vif', [vif]))
+			cfg.save(t)
+
+			cfg = self._create_config(t)
+
+			vifs = cfg.get('vif')
+
+			assert vifs is not None
+			assert isinstance(vifs.value, list)
+			assert len(vifs.value) == 1
+
+			vif = vifs.value[0]
+			assert isinstance(vif, XenDomUVifConfigValue)
+			assert vif.mac == '00:11:22:33:44:55'
+			assert vif.bridge == 'br0'
 
 
 		finally:

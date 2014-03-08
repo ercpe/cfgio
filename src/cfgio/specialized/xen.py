@@ -29,6 +29,14 @@ class XenDomUDiskConfigValue(ConfigValueBase):
 		return self.mode == "w"
 
 
+class XenDomUVifConfigValue(ConfigValueBase):
+
+	def __init__(self, **kwargs):
+		self.mac = kwargs.get('mac')
+		self.bridge = kwargs.get('bridge')
+		super(XenDomUVifConfigValue, self).__init__(self.mac)
+
+
 class XenConfig(TypeAwareKeyValueConfig):
 
 	def parse_list(self, key, value):
@@ -38,7 +46,7 @@ class XenConfig(TypeAwareKeyValueConfig):
 			return l
 
 		if key == "vif":
-			pass  # TODO: Implement parsing of vif
+			return [self.parse_vif_stanza(x) for x in l]
 
 		if key == "disk":
 			return [self.parse_disk_stanza(x) for x in l]
@@ -77,6 +85,25 @@ class XenConfig(TypeAwareKeyValueConfig):
 
 		return XenDomUDiskConfigValue(backend_access, backend_path, frontend, mode)
 
+	def parse_vif_stanza(self, stanza):
+		"""
+		Parses a vif stanza into a XenDomUVifConfigValue. The man page describes the format as:
+
+		Each stanza specifies a set of name = value options separated by commas, in the form: "name1=value1, name2=value2, ..."
+
+		:param stanza: The string to parse
+		"""
+
+		chunks = [x.strip() for x in stanza.split(",")]
+
+		d = {}
+		for x in chunks:
+			y = self.parse(x)
+			d[y.key] = y.value
+
+		return XenDomUVifConfigValue(**d)
+
+
 	def format(self, value):
 		if isinstance(value, XenDomUDiskConfigValue):
 			return "'%s:%s%s,%s,%s'" % (
@@ -86,5 +113,8 @@ class XenConfig(TypeAwareKeyValueConfig):
 				value.frontend,
 				value.mode
 			)
+
+		if isinstance(value, XenDomUVifConfigValue):
+			return "'mac=%s,bridge=%s'" % (value.mac, value.bridge)
 
 		return super(XenConfig, self).format(value)
