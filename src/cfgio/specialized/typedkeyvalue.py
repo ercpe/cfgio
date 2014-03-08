@@ -74,3 +74,5 @@ class TypeAwareKeyValueConfig(KeyValueConfig):
 			return str(value)
 		if isinstance(value, list):
 			return "[ %s ]" % ', '.join([self.format(x) for x in value])
+
+		return str(value)

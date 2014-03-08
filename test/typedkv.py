@@ -1,10 +1,37 @@
 # -*- coding: utf-8 -*-
+from cfgio.keyvalue import KeyValueConfigValue
 from cfgio.specialized.typedkeyvalue import TypeAwareKeyValueConfig
 import os
-from test.keyvalue import TestKeyValueConfig
+from test.base import KeyValueConfigTestBase
 
 
-class TestTypedKVConfig(TestKeyValueConfig):
+class TestTypedKVConfig(KeyValueConfigTestBase):
+
+	#def __init__(self):
+	#	pass
+		#super(TestKeyValueConfigBase, self).__init__(TypeAwareKeyValueConfig, KeyValueConfigValue, 'typekv.cfg')
+
+	@property
+	def default_cfg(self):
+		return 'typedkv.cfg'
+
+	@property
+	def cfg_type(self):
+		return TypeAwareKeyValueConfig
+
+	@property
+	def cfg_value_type(self):
+		return KeyValueConfigValue
+
+	def default_cfg_items(self):
+		return [('astring', "This is a string"),
+				('anint', 42),
+				('afloat', 13.37),
+				('abool', True),
+				('anotherbool', False),
+				('list_of_strings', ["foo", 'bar', "baz"]),
+				('another_list', ["foo, bar", 1, 2, 3.4])
+				]
 
 	def test_parsing(self):
 		cfg = TypeAwareKeyValueConfig(os.path.join(os.path.dirname(__file__), 'typedkv.cfg'))
