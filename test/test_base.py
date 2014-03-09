@@ -39,4 +39,3 @@ class TestBaseClasses(object):
 
 		except Exception as ex:
 			pytest.fail("Failed to instantiate a ReadConfig with filename=%s (caught: %s)" % (filename, ex))
-

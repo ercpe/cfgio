@@ -46,6 +46,12 @@ class ConfigBase(object):
 
 class ReadConfig(ConfigBase):
 
+	def __enter__(self):
+		return self
+
+	def __exit__(self, exc_type, exc_val, exc_tb):
+		pass
+
 	def read_values(self):
 		for x in self.cleaned:
 			v = self.parse(x)
@@ -72,7 +78,6 @@ class ReadConfig(ConfigBase):
 			if f(i):
 				yield i
 
-
 	def parse(self, s):
 		"""Subclasses must implement this method to parse a string into an instance of the configuration value class"""
 		pass
@@ -82,8 +87,13 @@ class WriteConfig(ReadConfig):
 
 	def __init__(self, *args, **kwargs):
 		super(WriteConfig, self).__init__(*args, **kwargs)
+		self.autosave = kwargs.get('autosave', True)
 		self._pending = []
 		self._remove = []
+
+	def __exit__(self, exc_type, exc_val, exc_tb):
+		if exc_type is None and self.autosave and (self._pending or self._remove):
+			self.save()
 
 	def set(self, value):
 		if value:
