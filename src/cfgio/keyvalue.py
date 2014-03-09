@@ -28,6 +28,16 @@ class KeyValueConfig(WriteConfig):
 		"""
 		return s and (s[0] in self.quote_chars and s[0] == s[-1])
 
+	def set(self, *args):
+		if len(args) == 1:
+			super(KeyValueConfig, self).set(args[0])
+		elif len(args) == 2:
+			# it's a key value pair
+			super(KeyValueConfig, self).set(KeyValueConfigValue(*args))
+		else:
+			raise Exception("set() takes either one argument (ConfigValue instance) or two: a key and a value")
+
+
 	def parse(self, line):
 		if not self.separator in line or len(line[:line.index(self.separator)].strip()) == 0:
 			return None

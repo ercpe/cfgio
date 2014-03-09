@@ -89,12 +89,23 @@ class KeyValueConfigTestBase(object):
 		try:
 			cfg = self._create_config()
 			cfg.set(None)
+			assert len(cfg._pending) == 0
 			cfg.save(t)
 		except Exception as ex:
 			pytest.fail("Caught %s when set()ing None" % ex)
 		finally:
 			if os.path.exists(t):
 				os.remove(t)
+
+	def test_set_kv(self):
+		cfg = self._create_config()
+		cfg.set('some-key', 'some-value')
+		assert len(cfg._pending) == 1
+
+		with pytest.raises(Exception):
+			cfg = self._create_config()
+			cfg.set('foo', 'bar', 'baz')
+
 
 	def test_write(self):
 		t = tempfile.mktemp()
