@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
+import pytest
 from cfgio.keyvalue import KeyValueConfigValue
 from cfgio.specialized.typedkeyvalue import TypeAwareKeyValueConfig
-import os
-from test.base import KeyValueConfigTestBase
+from test.test_keyvalue import TestKeyValueConfig
 
 
-class TestTypedKVConfig(KeyValueConfigTestBase):
+class TestTypedKVConfig(TestKeyValueConfig):
 
 	@property
-	def default_cfg(self):
+	def default_file(self):
 		return 'typedkv.cfg'
 
 	@property
@@ -19,6 +19,7 @@ class TestTypedKVConfig(KeyValueConfigTestBase):
 	def cfg_value_type(self):
 		return KeyValueConfigValue
 
+	@property
 	def default_cfg_items(self):
 		return [('astring', "This is a string"),
 				('anint', 42),
@@ -67,5 +68,18 @@ class TestTypedKVConfig(KeyValueConfigTestBase):
 								(True, "true"),
 								(["foo", "bar", "baz"], """[ "foo", "bar", "baz" ]""")
 							]:
-
 			assert cfg.format(raw) == expected_s
+
+
+	def test_write_space_separator(self):
+		pass
+
+	def test_read_values_with_space_separator(self):
+		pass
+
+	def test_read_quoted_values(self):
+		cfg = self.create_config(values_quoted=True)
+
+		x = cfg.get('astring')
+		assert x is not None
+		assert x.value == "This is a string"

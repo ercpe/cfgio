@@ -18,8 +18,10 @@ class FstabEntry(ConfigValueBase):
 		self.device, self.mountpoint, self.filesystem, self.opts, self.dump, self._pass = args
 		self._device, self._mountpoint, self._filesystem, self._opts, self._dump, self.__pass = args
 
-	def __repr__(self):
-		return "%s on %s (%s), opts: %s (%s/%s)" % (self.device, self.mountpoint, self.filesystem, self.opts, self.dump, self._pass)
+	@property
+	def value(self):
+		# compatibility for other KeyValueConfigs
+		return self
 
 
 class FstabConfig(WriteConfig):

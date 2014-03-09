@@ -5,8 +5,9 @@ from ..keyvalue import KeyValueConfig
 
 class TypeAwareKeyValueConfig(KeyValueConfig):
 
-	def __init__(self, filename=None, comment_chars=['#', ';']):
-		super(TypeAwareKeyValueConfig, self).__init__(filename, comment_chars=comment_chars, values_quoted=False)
+	def __init__(self, filename=None, **kwargs):
+		kwargs['values_quoted'] = True
+		super(TypeAwareKeyValueConfig, self).__init__(filename, **kwargs)
 
 	def parse(self, line):
 		kvcv = super(TypeAwareKeyValueConfig, self).parse(line)
@@ -46,21 +47,21 @@ class TypeAwareKeyValueConfig(KeyValueConfig):
 		if value.startswith("[") and value.endswith("]"):
 			# it's a list
 			return self.parse_list(key, value.strip().lstrip("[").rstrip("]"))
-		else:
-			# try each of this function to create a specific type
-			for f in [int, float, complex]:
-				try:
-					return f(value)
-				except ValueError:
-					pass
 
-			# try to convert it to boolean
-			if value.lower() in ["true", "yes", "on"]:
-				return True
-			elif value.lower() in ["false", "no", "off"]:
-				return False
+		# try each of this function to create a specific type
+		for f in [int, float, complex]:
+			try:
+				return f(value)
+			except ValueError:
+				pass
 
-			return value
+		# try to convert it to boolean
+		if value.lower() in ["true", "yes", "on"]:
+			return True
+		elif value.lower() in ["false", "no", "off"]:
+			return False
+
+		return value
 
 	def parse_list(self, key, value):
 		"""
@@ -94,4 +95,4 @@ class TypeAwareKeyValueConfig(KeyValueConfig):
 		else:
 			value_string = str(value.value)
 
-		return "%s = %s" % (value.key, value_string)
+		return "%s%s%s" % (value.key, self.separator, value_string)

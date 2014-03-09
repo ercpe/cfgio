@@ -6,7 +6,7 @@ import os
 
 class ConfigBase(object):
 
-	def __init__(self, filename=None, comment_chars=['#', ';']):
+	def __init__(self, filename=None, comment_chars=['#', ';'], **kwargs):
 		"""
 		:string filename: The filename of the file to read from.
 		:list comment_chars: A list of characters to recognize comments in the file
@@ -87,7 +87,7 @@ class WriteConfig(ReadConfig):
 
 	def __init__(self, *args, **kwargs):
 		super(WriteConfig, self).__init__(*args, **kwargs)
-		self.autosave = kwargs.get('autosave', True)
+		self.autosave = kwargs.pop('autosave', True)
 		self._pending = []
 		self._remove = []
 

@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 import os
 import tempfile
-import pytest
 from cfgio.keyvalue import KeyValueConfigValue
 from cfgio.specialized.xen import XenConfig, XenDomUDiskConfigValue, XenDomUVifConfigValue
-from test.base import KeyValueConfigTestBase
+from test.test_typedkeyvalue import TestTypedKVConfig
 
 
-class TestTypedKVConfig(KeyValueConfigTestBase):
+class TestTypedKVConfig(TestTypedKVConfig):
 
 	@property
-	def default_cfg(self):
+	def default_file(self):
 		return 'xen.cfg'
 
 	@property
@@ -21,6 +20,7 @@ class TestTypedKVConfig(KeyValueConfigTestBase):
 	def cfg_value_type(self):
 		return KeyValueConfigValue
 
+	@property
 	def default_cfg_items(self):
 		return [
 			('kernel', "/boot/vm-kernel"),
@@ -50,7 +50,7 @@ class TestTypedKVConfig(KeyValueConfigTestBase):
 		cfg.parse_list('foo', None)
 
 	def test_parse_disk(self):
-		cfg = self._create_config()
+		cfg = self.create_config()
 
 		disks = cfg.get('disk')
 
@@ -68,7 +68,7 @@ class TestTypedKVConfig(KeyValueConfigTestBase):
 						values
 
 	def test_parse_vif(self):
-		cfg = self._create_config()
+		cfg = self.create_config()
 
 		vifs = cfg.get('vif')
 
@@ -92,7 +92,7 @@ class TestTypedKVConfig(KeyValueConfigTestBase):
 			cfg.set(KeyValueConfigValue('disk', [d]))
 			cfg.save(t)
 
-			cfg = self._create_config(t)
+			cfg = self.create_config(t)
 
 			disks = cfg.get('disk')
 			assert disks is not None
@@ -118,7 +118,7 @@ class TestTypedKVConfig(KeyValueConfigTestBase):
 			cfg.set(KeyValueConfigValue('vif', [vif]))
 			cfg.save(t)
 
-			cfg = self._create_config(t)
+			cfg = self.create_config(t)
 
 			vifs = cfg.get('vif')
 
@@ -135,3 +135,10 @@ class TestTypedKVConfig(KeyValueConfigTestBase):
 		finally:
 			if os.path.exists(t):
 				os.remove(t)
+
+	def test_read_quoted_values(self):
+		cfg = self.create_config(values_quoted=True)
+
+		x = cfg.get('kernel')
+		assert x is not None
+		assert x.value == "/boot/vm-kernel"

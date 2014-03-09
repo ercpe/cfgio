@@ -4,20 +4,39 @@ import pytest
 
 from cfgio.fstab import FstabConfig, FstabEntry
 import os
+from test.base import CfgioTestBase
 
 
-class TestFstabConfig(object):
+class TestFstabConfig(CfgioTestBase):
 
-	def test_read(self):
-		cfg = FstabConfig(os.path.join(os.path.dirname(__file__), 'fstab'))
-		assert len(list(cfg.read_values())) == 5
+	@property
+	def default_file(self):
+		return 'fstab'
 
-	def test_instantiate(self):
+	@property
+	def cfg_type(self):
+		return FstabConfig
+
+	@property
+	def cfg_value_type(self):
+		return FstabEntry
+
+	@property
+	def default_cfg_items(self):
+		return [
+			('/dev/BOOT', FstabEntry('/dev/BOOT', '/boot', 'ext2', 'noauto,noatime', '1', '2')),
+			('/dev/ROOT', FstabEntry('/dev/ROOT', '/', 'ext3', 'noatime', '0', '1')),
+			('/dev/SWAP', FstabEntry('/dev/SWAP', 'none', 'swap', 'sw', '0', '0')),
+			('/dev/cdrom', FstabEntry('/dev/cdrom', '/mnt/cdrom', 'auto', 'noauto,ro', '0', '0')),
+			('/dev/fd0', FstabEntry('/dev/fd0', '/mnt/floppy', 'auto', 'noauto', '0', '0'))
+		]
+
+	def test_instantiate_fstabentry(self):
 		with pytest.raises(Exception):
 			for x in range(1, 5):
 				FstabEntry(tuple(['' * x]))
 
-	def test_parse(self):
+	def test_parse_FIXME(self):
 		cfg = FstabConfig(os.path.join(os.path.dirname(__file__), 'fstab'))
 
 		for dev, mp, fs, opts, dump, p in [('/dev/BOOT', '/boot', 'ext2', 'noauto,noatime', '1', '2'),

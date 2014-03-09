@@ -2,14 +2,15 @@
 
 import os
 import tempfile
+import pytest
 from cfgio.keyvalue import KeyValueConfig, KeyValueConfigValue
-from test.base import KeyValueConfigTestBase
+from test.base import CfgioTestBase
 
 
-class TestKeyValueConfig(KeyValueConfigTestBase):
+class TestKeyValueConfig(CfgioTestBase):
 
 	@property
-	def default_cfg(self):
+	def default_file(self):
 		return 'keyvalue.cfg'
 
 	@property
@@ -20,6 +21,7 @@ class TestKeyValueConfig(KeyValueConfigTestBase):
 	def cfg_value_type(self):
 		return KeyValueConfigValue
 
+	@property
 	def default_cfg_items(self):
 		return [('test', 'blah'),
 				('foo', 'bar'),
@@ -29,8 +31,41 @@ class TestKeyValueConfig(KeyValueConfigTestBase):
 				('with_quotes', '"yeah"')
 				]
 
+	def test_set_kv(self):
+		cfg = self.create_config()
+		cfg.set('some-key', 'some-value')
+		assert len(cfg._pending) == 1
+
+		with pytest.raises(Exception):
+			cfg = self.create_config()
+			cfg.set('foo', 'bar', 'baz')
+
+	def test_write(self):
+		t = tempfile.mktemp()
+
+		try:
+			cfg = self.create_config()
+			cfg.set(self.cfg_value_type("aaa", "bbb"))
+			cfg.save(t)
+
+			# our new key should by written to the tempfile
+			cfg = self.create_config(t)
+			print(list(cfg.read_values()))
+
+			assert(len(list(cfg.read_values())) == len(self.default_cfg_items)+1)
+
+			# but not again
+			cfg.set(self.cfg_value_type("aaa", "bbb"))
+			cfg.save(t)
+			cfg = self.create_config(t)
+			assert(len(list(cfg.read_values())) == len(self.default_cfg_items)+1)
+
+		finally:
+			if os.path.exists(t):
+				os.remove(t)
+
 	def test_read_values_with_space_separator(self):
-		cfg = self._create_config('keyvalue_space.cfg', separator=" ")
+		cfg = self.create_config('keyvalue_space.cfg', separator=" ", values_quoted=False)
 
 		for k, v in [
 						('test', 'blah'),
@@ -43,14 +78,14 @@ class TestKeyValueConfig(KeyValueConfigTestBase):
 			assert x.value == v
 
 	def test_read_quoted_values(self):
-		cfg = self._create_config(values_quoted=True)
+		cfg = self.create_config(values_quoted=True)
 
 		x = cfg.get('with_quotes')
 		assert x is not None
 		assert x.value == "yeah"
 
 	def test_read_quoted_values_with_space_separator(self):
-		cfg = self._create_config('keyvalue_space.cfg', separator=" ", values_quoted=True)
+		cfg = self.create_config('keyvalue_space.cfg', separator=" ", values_quoted=True)
 
 		x = cfg.get('with_quotes')
 		assert x is not None
@@ -60,22 +95,22 @@ class TestKeyValueConfig(KeyValueConfigTestBase):
 		t = tempfile.mktemp()
 
 		try:
-			cfg = self._create_config('keyvalue_space.cfg', separator=" ")
+			cfg = self.create_config('keyvalue_space.cfg', separator=" ")
 			cfg.set(KeyValueConfigValue("aaa", "bbb"))
 			cfg.save(t)
 
 			# our new key should by written to the tempfile
-			cfg = self._create_config(t, separator=" ")
+			cfg = self.create_config(t, separator=" ")
 			assert(len(list(cfg.read_values())) == 5)
 
 			# but not again
 			cfg.set(KeyValueConfigValue("aaa", "bbb"))
 			cfg.save(t)
-			cfg = self._create_config(t, separator=" ")
+			cfg = self.create_config(t, separator=" ")
 			assert(len(list(cfg.read_values())) == 5)
 
 
-			cfg = self._create_config(t, values_quoted=True, separator=" ")
+			cfg = self.create_config(t, values_quoted=True, separator=" ")
 			assert len(list(cfg.read_values())) == 5
 			v = cfg.get('aaa')
 			assert v is not None
@@ -84,8 +119,13 @@ class TestKeyValueConfig(KeyValueConfigTestBase):
 			# but not again
 			cfg.set(KeyValueConfigValue("aaa", "bbb"))
 			cfg.save(t)
-			cfg = self._create_config(t, separator=" ")
+			cfg = self.create_config(t, separator=" ")
 			assert(len(list(cfg.read_values())) == 5)
 		finally:
 			if os.path.exists(t):
 				os.remove(t)
+
+	def test_parse_garbage(self):
+		cfg = self.create_config(None, separator="=")
+
+		assert cfg.parse("foobar") is None

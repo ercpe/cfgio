@@ -17,10 +17,10 @@ class KeyValueConfig(WriteConfig):
 
 	quote_chars = ['"', "'"]
 
-	def __init__(self, filename=None, separator="=", comment_chars=['#', ';'], values_quoted=False):
-		super(KeyValueConfig, self).__init__(filename)
-		self.values_quoted = values_quoted
-		self.separator = separator
+	def __init__(self, filename=None, **kwargs):
+		self.values_quoted = kwargs.pop('values_quoted', False)
+		self.separator = kwargs.pop('separator', '=')
+		super(KeyValueConfig, self).__init__(filename, **kwargs)
 
 	def is_quoted(self, s):
 		"""
@@ -36,7 +36,6 @@ class KeyValueConfig(WriteConfig):
 			super(KeyValueConfig, self).set(KeyValueConfigValue(*args))
 		else:
 			raise Exception("set() takes either one argument (ConfigValue instance) or two: a key and a value")
-
 
 	def parse(self, line):
 		if not self.separator in line or len(line[:line.index(self.separator)].strip()) == 0:
@@ -57,5 +56,4 @@ class KeyValueConfig(WriteConfig):
 			else:
 				return '%s%s"%s"' % (value.key, self.separator, value.value)
 
-		else:
-			return "%s%s%s" % (value.key, self.separator, value.value)
+		return "%s%s%s" % (value.key, self.separator, value.value)
