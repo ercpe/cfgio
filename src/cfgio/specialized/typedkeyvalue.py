@@ -86,13 +86,21 @@ class TypeAwareKeyValueConfig(KeyValueConfig):
 	def format(self, value):
 		value_string = None
 
-		if isinstance(value.value, str):
-			value_string = '"%s"' % value.value.replace('"', '\"') # FIXME: Find a better way to quote quotes
-		elif isinstance(value.value, (float, int, complex)):
-			value_string = str(value)
-		elif isinstance(value.value, list):
-			value_string = "[ %s ]" % ', '.join([self.format(x) for x in value.value])
+		if isinstance(value.value, list):
+			value_string = "[ %s ]" % ', '.join([self.format_value(x) for x in value.value])
 		else:
-			value_string = str(value.value)
+			value_string = self.format_value(value.value)
 
 		return "%s%s%s" % (value.key, self.separator, value_string)
+
+	def format_value(self, value):
+		if isinstance(value, str):
+			return '"%s"' % value.replace('"', '\"') # FIXME: Find a better way to quote quotes
+
+		if isinstance(value, bool):
+			return str(value).lower()
+
+		if isinstance(value, (float, int, complex)):
+			return str(value)
+
+		return str(value)

@@ -103,8 +103,7 @@ class XenConfig(TypeAwareKeyValueConfig):
 
 		return XenDomUVifConfigValue(**d)
 
-
-	def format(self, value):
+	def format_value(self, value):
 		if isinstance(value, XenDomUDiskConfigValue):
 			return "'%s:%s%s,%s,%s'" % (
 				value.backend_access,
@@ -117,4 +116,4 @@ class XenConfig(TypeAwareKeyValueConfig):
 		if isinstance(value, XenDomUVifConfigValue):
 			return "'mac=%s,bridge=%s'" % (value.mac, value.bridge)
 
-		return super(XenConfig, self).format(value)
+		return super(XenConfig, self).format_value(value)

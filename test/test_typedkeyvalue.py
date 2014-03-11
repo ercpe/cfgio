@@ -59,16 +59,17 @@ class TestTypedKVConfig(TestKeyValueConfig):
 				for i, expected in enumerate(expected_value):
 					assert isinstance(parsed_value[i], type(expected))
 
-	def format(self):
+	def test_format(self):
 		cfg = self.cfg_type()
 
 		for raw, expected_s in [
 								(42, "42"),
 								(13.37, "13.37"),
 								(True, "true"),
+								(False, "false"),
 								(["foo", "bar", "baz"], """[ "foo", "bar", "baz" ]""")
 							]:
-			assert cfg.format(raw) == expected_s
+			assert cfg.format(KeyValueConfigValue('foo', raw)) == "foo=" + expected_s
 
 
 	def test_write_space_separator(self):
