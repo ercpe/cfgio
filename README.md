@@ -16,3 +16,23 @@ Because i often need to read and write configuration files on systems. Typically
 	print(fstab.get('/dev/sda2'))
 
 	/dev/sda2 on /boot (ext4), opts: noatime,discard (1/2)
+
+
+** Reading Xen domU configurations **
+
+    from cfgio.specialized import xen
+    cfg = xen.XenConfig('/etc/xen/test.cfg')
+    print(cfg.get('memory').value)
+    >> 1024
+    print(cfg.get('vif').value)
+    >> [<cfgio.specialized.xen.XenDomUVifConfigValue object at 0x25e6210>]
+
+
+# Attention: work in progress
+
+cfgio is far away from being a full-featured library. Some important features are still missing:
+
+* no multiline support. cfgio will skip subsequent lines and mark them as garbage
+* cfgio does not uncomment variables. Instead it will add a new line to the file
+* Reading bash "configs" using a KeyValueConfig may lead into suprising result. `cfgio` does not handle this very well, e.g. splitting up variable assignments into multiple lines.
+* ...
