@@ -34,7 +34,9 @@ class FstabConfig(WriteConfig):
 
 	def parse(self, s):
 		m = self.line_re.match(s)
-		return FstabEntry(*m.groups())
+		if m:
+			return FstabEntry(*m.groups())
+		return None
 
 	def format(self, value):
 		return '{}\t{}\t{}\t{}\t{}\t{}'.format(value.device, value.mountpoint, value.filesystem, value.opts, value.dump, value._pass)

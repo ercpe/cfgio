@@ -41,7 +41,7 @@ class ConfigBase(object):
 				yield line
 
 	def is_comment(self, line):
-		return line[0] in self.comment_chars
+		return line and line[0] in self.comment_chars
 
 
 class ReadConfig(ConfigBase):
@@ -116,10 +116,14 @@ class WriteConfig(ReadConfig):
 					continue
 
 				if self.is_comment(line):
-					o.write(line + '\n') # FIXME: Replace commented variable
-					continue
-
-				value = self.parse(line)
+					#o.write(line + '\n') # FIXME: Replace commented variable
+					#continue
+					s = line
+					while self.is_comment(s):
+						s = s[1:]
+					value = self.parse(s.strip())
+				else:
+					value = self.parse(line)
 
 				if value:
 					written = False

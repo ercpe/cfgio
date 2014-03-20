@@ -129,3 +129,37 @@ class TestKeyValueConfig(CfgioTestBase):
 		cfg = self.create_config(None, separator="=")
 
 		assert cfg.parse("foobar") is None
+
+	def test_uncomment(self):
+		t = tempfile.mktemp()
+
+		try:
+			def _inspect_file(file):
+				no_comments = 0
+				no_values = 0
+				with open(file, 'r') as f:
+					for line in [x.strip() for x in f.readlines()]:
+						if not line:
+							continue
+
+						if line.startswith("#"):
+							no_comments += 1
+						else:
+							no_values += 1
+				return no_comments, no_values
+
+
+			orig_comments, orig_values = _inspect_file(os.path.join(os.path.dirname(__file__), self.default_file))
+
+			cfg = self.create_config()
+			cfg.set('inactive_value', 0)
+
+			cfg.save(t)
+
+			written_comments, written_values = _inspect_file(t)
+
+			assert written_comments == orig_comments -1
+			assert written_values == orig_values +1
+		finally:
+			if os.path.exists(t):
+				os.remove(t)
