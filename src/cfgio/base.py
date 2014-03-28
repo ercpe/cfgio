@@ -53,12 +53,17 @@ class ReadConfig(ConfigBase):
 		pass
 
 	def read_values(self):
+		"""
+		Returns a generator containing all successfully parsed configuration items
+		"""
 		for x in self.cleaned:
 			v = self.parse(x)
 			if v:
 				yield v
 
 	def get(self, name, default=None):
+		"""Returns the configuration value whose key property is equal to the given one. If no configuration value
+		could be found, it returns the default value."""
 		for v in self.read_values():
 			if v.key == name:
 				return v
@@ -96,10 +101,15 @@ class WriteConfig(ReadConfig):
 			self.save()
 
 	def set(self, value):
+		"""
+		Adds the given value to the list of pending changes
+		"""
 		if value:
 			self._pending.append(value)
 
 	def remove(self, key):
+		"""Removes a configuration value from the file. Note that if another value with the same key has been set(),
+		the new value will be written (set() overrides remove())."""
 		self._remove.append(key)
 
 	def save(self, outfile=None):
@@ -116,8 +126,8 @@ class WriteConfig(ReadConfig):
 					continue
 
 				if self.is_comment(line):
-					#o.write(line + '\n') # FIXME: Replace commented variable
-					#continue
+					# if the current line comment AND can be successfully parsed in to a configuration value,
+					# replace the line if the key matches
 					s = line
 					while self.is_comment(s):
 						s = s[1:]
