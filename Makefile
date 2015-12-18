@@ -13,7 +13,7 @@ compile_optimized:
 
 coverage:
 	coverage erase
-	PYTHONPATH=".:./src" coverage run --source='src' --omit='src/test.py,src/fakecube.py' --branch -m py.test
+	PYTHONPATH=".:./src" coverage run --source='src' --omit='src/test.py,src/fakecube.py' --branch -m py.test -qq
 	coverage report -m
 
 travis: compile compile_optimized test_default_python coverage
